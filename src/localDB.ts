@@ -60,3 +60,58 @@ function getUserByDisplayName(
     throw new Error("Failed to get friends list: " + error.message);
   }
 }
+
+function getFriendsList(
+  ctx: nkruntime.Context,
+  logger: nkruntime.Logger,
+  nk: nkruntime.Nakama,
+  payload: string
+): string {
+  const data = JSON.parse(payload);
+  const { user_id } = data;
+
+  // const query = `SELECT * FROM users WHERE display_name LIKE $1 LIMIT 10`;
+  // const result = nk.sqlQuery(query, [`%${display_name}%`]);
+
+  let friends = {} as nkruntime.FriendList;
+
+  try {
+    friends = nk.friendsList(user_id, 100);
+
+    if (friends && friends.friends) {
+      const friendsWithBooks = friends.friends
+        .map((friend) => {
+          if (friend && friend.user && friend.user.userId) {
+            const books = nk.storageList(friend.user.userId, "book_data", 100);
+            const booksCounts = books.objects ? books.objects.length : 0;
+
+            return {
+              id: friend.user.userId,
+              display_name: friend.user.displayName,
+              avatar_url: friend.user.avatarUrl,
+              username: friend.user.username,
+              state: friend.state,
+              book_count: booksCounts,
+            };
+          } else {
+            logger.warn("Invalid friend entry:", friend);
+            return null;
+          }
+        })
+        .filter((friend) => friend !== null);
+
+      return JSON.stringify({
+        status: "success",
+        result: friendsWithBooks,
+      });
+    }
+
+    return JSON.stringify({
+      status: "success",
+      result: friends,
+    });
+  } catch (error: any) {
+    logger.error("Error getting friends list:", error);
+    throw new Error("Failed to get friends list: " + error.message);
+  }
+}
