@@ -6,5 +6,6 @@ let InitModule: nkruntime.InitModule = function (
 ) {
   initializer.registerRpc("getUserByDisplayName", getUserByDisplayName);
   initializer.registerRpc("getFriendsList", getFriendsList);
+  initializer.registerRpc("getSharedBooksList", getSharedBooksList);
   logger.info("Hello World!");
 };

@@ -115,3 +115,50 @@ function getFriendsList(
     throw new Error("Failed to get friends list: " + error.message);
   }
 }
+
+function getSharedBooksList(
+  ctx: nkruntime.Context,
+  logger: nkruntime.Logger,
+  nk: nkruntime.Nakama,
+  payload: string
+): string {
+  const data = JSON.parse(payload);
+  const { user_id } = data;
+
+  let friends = {} as nkruntime.FriendList;
+
+  try {
+    friends = nk.friendsList(user_id, 100);
+
+    if (friends && friends.friends) {
+      const sharedBooks = friends.friends
+        .map((friend) => {
+          if (
+            friend &&
+            friend.user &&
+            friend.user.userId &&
+            friend.state === 0
+          ) {
+            return nk.storageList(friend.user.userId, "book_data", 100);
+          } else {
+            logger.warn("Invalid friend entry:", friend);
+            return null;
+          }
+        })
+        .filter((friend) => friend !== null);
+
+      return JSON.stringify({
+        status: "success",
+        result: sharedBooks,
+      });
+    }
+
+    return JSON.stringify({
+      status: "success",
+      result: friends,
+    });
+  } catch (error: any) {
+    logger.error("Error getting friends list:", error);
+    throw new Error("Failed to get friends list: " + error.message);
+  }
+}
