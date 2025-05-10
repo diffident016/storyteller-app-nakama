@@ -159,7 +159,8 @@ function getSharedBooksList(
             return null;
           }
         })
-        .filter((friend) => friend !== null);
+        .filter((friend) => friend !== null)
+        .reduce((acc, books) => acc.concat(books), []);
 
       return JSON.stringify({
         status: "success",
