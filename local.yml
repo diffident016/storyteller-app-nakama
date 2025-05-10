@@ -9,7 +9,7 @@ console:
 
 logger:
   stdout: false
-  level: "warn"
+  level: "info"
   file: "/nakama/data/logfile.log"
 
 runtime:

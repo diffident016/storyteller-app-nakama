@@ -130,6 +130,7 @@ function getSharedBooksList(
   try {
     friends = nk.friendsList(user_id, 100);
 
+    logger.info("Results:", friends);
     if (friends && friends.friends) {
       const sharedBooks = friends.friends
         .map((friend) => {
@@ -139,7 +140,20 @@ function getSharedBooksList(
             friend.user.userId &&
             friend.state === 0
           ) {
-            return nk.storageList(friend.user.userId, "book_data", 100);
+            const results = nk.storageList(
+              friend.user.userId,
+              "book_data",
+              100
+            );
+
+            logger.info("Results:", results);
+            const books = results.objects
+              ? results.objects
+                  .filter((item) => item.permissionRead === 2)
+                  .map((book) => book.value)
+              : [];
+
+            return books;
           } else {
             logger.warn("Invalid friend entry:", friend);
             return null;
@@ -155,7 +169,7 @@ function getSharedBooksList(
 
     return JSON.stringify({
       status: "success",
-      result: friends,
+      result: [],
     });
   } catch (error: any) {
     logger.error("Error getting friends list:", error);
